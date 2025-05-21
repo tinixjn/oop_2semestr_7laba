@@ -1,29 +1,163 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ClassLibrary;
-
 
 namespace Program
 {
     class Program
     {
+        static Dictionary<string, DoubList> lists = new Dictionary<string, DoubList>();
+        static string activeListName = null;
+
         static void Main(string[] args)
         {
-            DoubList MyList = new DoubList();
-            Console.WriteLine("Doubly linked list successfully created!");
-            Console.WriteLine("Size of the list: " + MyList.Size);
+            Console.WriteLine("Welcome to Doubly Linked List Manager with multiple lists!");
 
-            int choice;
-            string menu = "\n==== MENU ====\n" +
+            bool exit = false;
+
+            do
+            {
+                ShowMainMenu();
+                int choice = GetIntInput("Enter your choice: ");
+
+                switch (choice)
+                {
+                    case 1:
+                        CreateNewList();
+                        break;
+                    case 2:
+                        SelectActiveList();
+                        break;
+                    case 3:
+                        DeleteList();
+                        break;
+                    case 4:
+                        if (activeListName == null)
+                        {
+                            Console.WriteLine("No active list selected. Please create or select a list first.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Working with list: {activeListName}");
+                            WorkWithActiveList();
+                        }
+                        break;
+                    case 0:
+                        exit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice.");
+                        break;
+                }
+
+            } while (!exit);
+
+            Console.WriteLine("Exiting program...");
+        }
+
+        static void ShowMainMenu()
+        {
+            Console.WriteLine("\n==== MAIN MENU ====");
+            Console.WriteLine("1. Create new list");
+            Console.WriteLine("2. Select active list");
+            Console.WriteLine("3. Delete a list");
+            Console.WriteLine("4. Work with active list");
+            Console.WriteLine("0. Exit");
+        }
+
+        static void CreateNewList()
+        {
+            Console.Write("Enter new list name: ");
+            string name = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                Console.WriteLine("Name cannot be empty.");
+                return;
+            }
+
+            if (lists.ContainsKey(name))
+            {
+                Console.WriteLine("A list with this name already exists.");
+                return;
+            }
+
+            lists[name] = new DoubList();
+            activeListName = name;
+            Console.WriteLine($"List '{name}' created and set as active.");
+        }
+
+        static void SelectActiveList()
+        {
+            if (lists.Count == 0)
+            {
+                Console.WriteLine("No lists available. Create a list first.");
+                return;
+            }
+
+            Console.WriteLine("Available lists:");
+            foreach (var key in lists.Keys)
+            {
+                Console.WriteLine("- " + key);
+            }
+
+            Console.Write("Enter the name of the list to select: ");
+            string name = Console.ReadLine();
+
+            if (!lists.ContainsKey(name))
+            {
+                Console.WriteLine("List not found.");
+                return;
+            }
+
+            activeListName = name;
+            Console.WriteLine($"Active list set to '{name}'.");
+        }
+
+        static void DeleteList()
+        {
+            if (lists.Count == 0)
+            {
+                Console.WriteLine("No lists to delete.");
+                return;
+            }
+
+            Console.WriteLine("Available lists:");
+            foreach (var key in lists.Keys)
+            {
+                Console.WriteLine("- " + key);
+            }
+
+            Console.Write("Enter the name of the list to delete: ");
+            string name = Console.ReadLine();
+
+            if (!lists.ContainsKey(name))
+            {
+                Console.WriteLine("List not found.");
+                return;
+            }
+
+            lists.Remove(name);
+            Console.WriteLine($"List '{name}' deleted.");
+
+            if (activeListName == name)
+            {
+                activeListName = null;
+                Console.WriteLine("Active list was deleted. No active list selected now.");
+            }
+        }
+
+        static void WorkWithActiveList()
+        {
+            var MyList = lists[activeListName];
+
+            string menu = "\n==== LIST MENU ====\n" +
             "1. Add element to the list\n" +
             "2. Add multiple elements to the list\n" +
             "3. Remove element by value\n" +
             "4. Remove element by index\n" +
-            "5. Remove multiple elements from list\n" + 
-            "6. Display the list\n" +                   
+            "5. Remove multiple elements from list\n" +
+            "6. Display the list\n" +
             "7. Get element by index\n" +
             "8. Find first element that is a multiple of 5\n" +
             "9. Calculate sum of elements on even positions\n" +
@@ -34,9 +168,12 @@ namespace Program
             "14. Clear the list\n" +
             "15. Fill list with random elements\n" +
             "16. Show average of the list\n" +
-            "0. Exit";
+            "0. Return to main menu";
 
             Console.WriteLine(menu);
+
+            int choice;
+
             do
             {
                 choice = GetIntInput("\nEnter your choice: ");
@@ -65,7 +202,6 @@ namespace Program
                         Console.WriteLine("Elements added successfully.");
                         break;
 
-
                     case 3:
                         try
                         {
@@ -86,7 +222,7 @@ namespace Program
                         try
                         {
                             MyList.isEmpty();
-                            int idx = GetIntInput("Enter the index to remove: ")-1;
+                            int idx = GetIntInput("Enter the index to remove: ") - 1;
                             if (MyList.RemoveAt(idx))
                                 Console.WriteLine("Element removed successfully.");
                             else
@@ -134,7 +270,6 @@ namespace Program
                         }
                         break;
 
-
                     case 6:
                         Console.WriteLine($"List size: {MyList.Size}");
                         try
@@ -157,9 +292,9 @@ namespace Program
                         try
                         {
                             MyList.isEmpty();
-                            int getIndex = GetIntInput("Enter the index to get: ")-1;
+                            int getIndex = GetIntInput("Enter the index to get: ") - 1;
                             long element = MyList[getIndex];
-                            Console.WriteLine($"Element at index {getIndex+1}: {element}");
+                            Console.WriteLine($"Element at index {getIndex + 1}: {element}");
                         }
                         catch (Exception ex)
                         {
@@ -274,7 +409,7 @@ namespace Program
                         Random rand = new Random();
                         for (int i = 0; i < randCount; i++)
                         {
-                            long number = rand.Next(-10000, 100000);
+                            long number = rand.Next(-100000, 100000);
                             MyList.Add(number);
                         }
                         Console.WriteLine("Random elements added.");
@@ -293,16 +428,16 @@ namespace Program
                         break;
 
                     case 0:
-                        Console.WriteLine("Exiting...");
+                        Console.WriteLine("Returning to main menu...");
                         break;
 
                     default:
                         Console.WriteLine("Invalid option.");
                         break;
                 }
-
             } while (choice != 0);
         }
+
         static int GetIntInput(string prompt)
         {
             int result;
